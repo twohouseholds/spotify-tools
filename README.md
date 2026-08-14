@@ -13,7 +13,9 @@ Tools for Spotify features that are currently not supported.
    2. Create an app with the `Redirect URIs` set to `http://127.0.0.1:8888/callback` and `Which API/SDKs are you planning to use?` set to `Web API`.
    3. Copy the `Client ID` and `Client Secret` to the respective environment variables in `.env`.
 
-## Tool: Playlist Intersection
+## Tools
+
+### Playlist Intersection
 
 Create an intersection playlist with the common tracks of the provided playlists.
 
@@ -27,7 +29,7 @@ The tool can also be configured via a YAML file, though.
 This enables additional features like `setminus_playlist_url`.
 To do so, provide the path to a config YAML file at the end of the command.
 
-## Tool: Playlist Artist Count
+### Playlist Artist Count
 
 Output the count of songs per artist in the provided playlist (descending order).
 
