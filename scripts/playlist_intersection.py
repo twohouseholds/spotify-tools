@@ -1,5 +1,15 @@
 #!/usr/bin/env python3
-"""Create an intersection playlist from a number of playlist links."""
+"""Create an intersection Spotify playlist from provided playlist URLs.
+
+This script reads one or more Spotify playlist URLs (from a YAML config
+file or interactively from stdin), computes the intersection of tracks
+based on track name and main artist, and creates a new playlist in the
+current user's account with the intersecting tracks.
+
+The script uses `spotipy` for API access and expects `SPOTIFY_CLIENT_ID`
+and `SPOTIFY_CLIENT_SECRET` to be set in the environment. The OAuth
+redirect and scopes are defined by the module-level constants.
+"""
 
 import argparse
 import logging
@@ -22,22 +32,25 @@ _logger = logging.getLogger(__name__)
 
 
 class Config(BaseModel):
-    """Config for this script."""
+    """Configuration for the script."""
 
     output_playlist_name: str
-    playlist_links: list[str]
-    setminus_playlist_link: str | None = None
+    """Name of the playlist to create."""
+    playlist_urls: list[str]
+    """Playlist URLs to intersect."""
+    setminus_playlist_url: str | None = None
+    """Optional playlist URL to subtract from the intersection."""
 
 
 def main() -> None:
-    """Run script."""
+    """Run the script."""
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     args = parse_args()
     spotify_client = get_spotify_client()
     config = get_config(args)
     intersection_track_uris = get_intersection_track_uris(
-        config.playlist_links,
-        config.setminus_playlist_link,
+        config.playlist_urls,
+        config.setminus_playlist_url,
         spotify_client,
     )
     create_playlist(
@@ -48,7 +61,13 @@ def main() -> None:
 
 
 def get_spotify_client() -> Spotify:
-    """Create spotify client from credentials in environment variables."""
+    """Create an authenticated Spotify client.
+
+    The client is configured using environment variables.
+
+    :returns: An authenticated Spotify client.
+    :raises ValueError: If either required environment variable is missing.
+    """
     if not (client_id := os.getenv("SPOTIFY_CLIENT_ID")):
         msg = "Environment variable 'SPOTIFY_CLIENT_ID' is not set."
         raise ValueError(msg)
@@ -66,7 +85,10 @@ def get_spotify_client() -> Spotify:
 
 
 def parse_args() -> Namespace:
-    """Parse CLI arguments."""
+    """Parse CLI arguments.
+
+    :returns: Parsed command-line arguments.
+    """
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         dest="config_path",
@@ -79,23 +101,29 @@ def parse_args() -> Namespace:
 
 
 def get_config(args: Namespace) -> Config:
-    """Get the configuration, either from the given file or by asking the user."""
+    """Load configuration from a YAML file or prompt interactively.
+
+    :param args: Parsed command-line arguments.
+    :returns: Validated script configuration.
+    :raises ValueError: If the config file contents do not match
+        :class:`Config`.
+    """
     if args.config_path:
         return Config.model_validate(yaml.safe_load(args.config_path.read_text()))
     print(  # noqa: T201
-        "Paste the links to the playlists you want the intersection of",
+        "Paste the URLs to the playlists you want the intersection of",
         "(paste + ENTER to add, ENTER to continue):",
     )
-    playlist_links = []
+    playlist_urls = []
     while True:
-        if link := input():
-            playlist_links.append(link)
+        if url := input():
+            playlist_urls.append(url)
         else:
             break
     return Config(
         output_playlist_name=input("Name the output playlist: "),
-        playlist_links=playlist_links,
-        setminus_playlist_link=None,
+        playlist_urls=playlist_urls,
+        setminus_playlist_url=None,
     )
 
 
@@ -105,23 +133,38 @@ class Track:
     """Track in a playlist."""
 
     uri: str
+    """Spotify track URI."""
     name: str
+    """Track name."""
     main_artist: str
+    """Primary artist name."""
 
     @override
     def __eq__(self, other: object) -> bool:
-        """Compare tracks by main artist and name only."""
+        """Compare tracks by main artist and name only.
+
+        :param other: Object to compare against.
+        :returns: ``True`` when both tracks share the same main artist and
+            name.
+        """
         if not isinstance(other, Track):
             return NotImplemented
         return self.main_artist == other.main_artist and self.name == other.name
 
     @override
     def __hash__(self) -> int:
-        """Hash tracks by main artist and name only."""
+        """Hash tracks by main artist and name only.
+
+        :returns: Hash value derived from main artist and track name.
+        """
         return hash((self.main_artist, self.name))
 
     def __lt__(self, other: object) -> bool:
-        """Compare tracks by main artist, then by name."""
+        """Compare tracks by main artist, then by name.
+
+        :param other: Object to compare against.
+        :returns: ``True`` when this track sorts before ``other``.
+        """
         if not isinstance(other, Track):
             return NotImplemented
         if self.main_artist == other.main_artist:
@@ -130,35 +173,53 @@ class Track:
 
 
 def get_intersection_track_uris(
-    playlist_links: list[str],
-    setminus_playlist_link: str | None,
+    playlist_urls: list[str],
+    setminus_playlist_url: str | None,
     spotify_client: Spotify,
 ) -> list[str]:
-    """Get the intersection of the playlists from ``playlist_ids``."""
-    if not playlist_links:
+    """Compute the intersection of multiple playlists and return URIs.
+
+    Tracks are compared using :class:`Track` semantics (main artist + name).
+    If ``setminus_playlist_url`` is provided, its tracks are removed from the
+    intersection.
+
+    :param playlist_urls: Playlist URLs to intersect.
+    :param setminus_playlist_url: Optional playlist URL whose tracks should
+        be removed from the result.
+    :param spotify_client: Authenticated Spotify client.
+    :returns: Sorted track URIs from the intersection.
+    """
+    if not playlist_urls:
         return []
     _logger.info("Reading playlists")
     tracks_by_playlist = [
-        get_tracks(playlist_link, spotify_client) for playlist_link in playlist_links
+        get_tracks(playlist_url, spotify_client) for playlist_url in playlist_urls
     ]
     _logger.info("Computing intersection")
     intersection_tracks = set.intersection(*tracks_by_playlist)
-    if setminus_playlist_link:
-        intersection_tracks -= get_tracks(setminus_playlist_link, spotify_client)
+    if setminus_playlist_url:
+        intersection_tracks -= get_tracks(setminus_playlist_url, spotify_client)
     return [track.uri for track in sorted(intersection_tracks)]
 
 
 def get_tracks(
-    playlist_link: str,
+    playlist_url: str,
     spotify_client: Spotify,
 ) -> set[Track]:
-    """Get the tracks from ``playlist_id``.
+    """Fetch all tracks from a Spotify playlist.
 
-    Spotify allows a limit up to 100 tracks per request. Therefore, requests for 100
-    tracks each are sent until a response contains <100 tracks.
+    The Spotify Web API paginates playlist tracks; this function requests
+    pages of up to 100 items until no more pages remain. Each returned item
+    is normalized into a :class:`Track` instance.
+
+    :param playlist_url: Spotify playlist URL.
+    :param spotify_client: Authenticated Spotify client.
+    :returns: Unique tracks from the playlist.
+    :raises ValueError: If ``playlist_url`` does not contain a valid playlist
+        identifier.
     """
     tracks: set[Track] = set()
-    playlist_id = extract_playlist_id(playlist_link)
+    playlist_id = extract_playlist_id(playlist_url)
     offset = 0
     limit = 100
     has_next_page = True
@@ -186,11 +247,18 @@ def get_tracks(
     return tracks
 
 
-def extract_playlist_id(playlist_link: str) -> str:
-    """Extract the playlist ID from a playlist link."""
-    match = re.search("open.spotify.com/playlist/([a-zA-Z0-9]+)", playlist_link)
+def extract_playlist_id(playlist_url: str) -> str:
+    """Extract the Spotify playlist ID from a playlist URL.
+
+    Accepts typical ``open.spotify.com/playlist/<id>`` URLs.
+
+    :param playlist_url: Spotify playlist URL.
+    :returns: The playlist identifier.
+    :raises ValueError: If the URL does not contain a valid playlist ID.
+    """
+    match = re.search("open.spotify.com/playlist/([a-zA-Z0-9]+)", playlist_url)
     if not match:
-        msg = f"{playlist_link} is not a valid Spotify playlist link"
+        msg = f"{playlist_url} is not a valid Spotify playlist URL"
         raise ValueError(msg)
     return match.group(1)
 
@@ -200,7 +268,13 @@ def create_playlist(
     track_uris: list[str],
     spotify_client: Spotify,
 ) -> None:
-    """Create playlist."""
+    """Create a Spotify playlist and add tracks to it.
+
+    :param name: Name of the playlist to create.
+    :param track_uris: Track URIs to add to the playlist.
+    :param spotify_client: Authenticated Spotify client.
+    :returns: None.
+    """
     _logger.info("Creating playlist '%s'", name)
     response_dict = cast(
         "dict[str, Any]",

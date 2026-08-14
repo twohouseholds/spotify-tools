@@ -14,12 +14,12 @@ Tool to create an intersection playlist with the common tracks of a number of pl
    3. Copy the `Client ID` and `Client Secret` to the respective environment variables in `.env`.
 6. Run the script: `uv run --env-file .env python scripts/playlist_intersection.py`.
    - The first time you run the script, a browser popup will ask you to confirm you want to grant the necessary permissions to run the script.
-   - If the script fails with `403 Forbidden` for a playlist that you can access via Spotify UI, try using a personal copy: Go to the playlist -> three dots -> `Add to other playlist` -> `New playlist`. Now use the link to your personal copy.
+   - If the script fails with `403 Forbidden` for a playlist that you can access via Spotify UI, try using a personal copy: Go to the playlist -> three dots -> `Add to other playlist` -> `New playlist`. Now use the URL to your personal copy.
 
 ## Configuration
 
-By default, the tool will ask you to input configuration details (playlist links etc.) via terminal.
+By default, the tool will ask you to input configuration details (playlist URLs etc.) via terminal.
 
 The tool can also be configured via a YAML file, though.
-This enables additional features like `setminus_playlist_link`.
+This enables additional features like `setminus_playlist_url`.
 If you wish to do so, provide the path to your config YAML file at the end of the command to run the script.
