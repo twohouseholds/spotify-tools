@@ -7,7 +7,7 @@ Tools for Spotify features that are currently not supported.
 1. Clone the repository.
 2. Install Python 3.12 or newer.
 3. Install `uv` (e.g., via `winget install --id=astral-sh.uv  -e`).
-4. Switch to the directory of the clone and run `uv sync --all-packages`.
+4. Switch to the directory of the clone and run `uv sync`.
 5. Rename `.env.template` to `.env` and enter your Spotify Web API credentials:
    1. Log in to the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard).
    2. Create an app with the `Redirect URIs` set to `http://127.0.0.1:8888/callback` and `Which API/SDKs are you planning to use?` set to `Web API`.
