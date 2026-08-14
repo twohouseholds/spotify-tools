@@ -18,7 +18,7 @@ Tools for Spotify features that are currently not supported.
 Create an intersection playlist with the common tracks of a number of playlists.
 
 ```bash
-uv run --env-file .env python scripts/playlist_intersection.py
+uv run --env-file .env -m scripts.playlist_intersection
 ```
 
 By default, the tool asks for the input configuration details (playlist URLs etc.) via terminal.
