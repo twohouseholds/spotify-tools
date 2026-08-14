@@ -31,7 +31,7 @@ To do so, provide the path to a config YAML file at the end of the command.
 
 ### Playlist Artist Count
 
-Output the count of songs per artist in the provided playlist (descending order).
+Output the count of songs per artist in the provided playlist (ascending order).
 
 ```bash
 uv run --env-file .env -m scripts.playlist_artist_counts

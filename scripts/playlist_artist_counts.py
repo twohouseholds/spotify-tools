@@ -1,4 +1,4 @@
-"""Output the count of songs per artist in a provided playlist (descending order).
+"""Output the count of songs per artist in a provided playlist (ascending order).
 
 A song is only attributed to its main artist.
 """
@@ -19,7 +19,7 @@ def main() -> None:
     tracks = get_tracks(playlist_url, spotify_client)
     main_artists = [track.main_artist for track in tracks]
     artist_counts = Counter(main_artists)
-    for artist, count in artist_counts.most_common():
+    for artist, count in reversed(artist_counts.most_common()):
         print(f"{artist}: {count}")  # noqa: T201
 
 
