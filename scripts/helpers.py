@@ -14,17 +14,17 @@ REDIRECT_URI = "http://127.0.0.1:8888/callback"
 
 
 def extract_playlist_id(playlist_url: str) -> str:
-    """Extract the Spotify playlist ID from a playlist URL.
+    """Extract the playlist ID from a playlist URL.
 
     Accepts typical ``open.spotify.com/playlist/<id>`` URLs.
 
-    :param playlist_url: Spotify playlist URL.
+    :param playlist_url: The playlist URL.
     :returns: The playlist identifier.
     :raises ValueError: If the URL does not contain a valid playlist ID.
     """
     match = re.search("open.spotify.com/playlist/([a-zA-Z0-9]+)", playlist_url)
     if not match:
-        msg = f"{playlist_url} is not a valid Spotify playlist URL"
+        msg = f"{playlist_url} is not a valid playlist URL"
         raise ValueError(msg)
     return match.group(1)
 
@@ -59,7 +59,7 @@ class Track:
     """Track in a playlist."""
 
     uri: str
-    """Spotify track URI."""
+    """Track URI."""
     name: str
     """Track name."""
     main_artist: str
@@ -102,13 +102,13 @@ def get_tracks(
     playlist_url: str,
     spotify_client: Spotify,
 ) -> set[Track]:
-    """Fetch all tracks from a Spotify playlist.
+    """Fetch all tracks from a playlist.
 
     The Spotify Web API paginates playlist tracks; this function requests
     pages of up to 100 items until no more pages remain. Each returned item
     is normalized into a :class:`Track` instance.
 
-    :param playlist_url: Spotify playlist URL.
+    :param playlist_url: Playlist URL.
     :param spotify_client: Authenticated Spotify client.
     :returns: Unique tracks from the playlist.
     :raises ValueError: If ``playlist_url`` does not contain a valid playlist
@@ -149,7 +149,7 @@ def create_playlist(
     spotify_client: Spotify,
     logger: Logger,
 ) -> None:
-    """Create a Spotify playlist and add tracks to it.
+    """Create a playlist and add tracks to it.
 
     :param name: Name of the playlist to create.
     :param track_uris: Track URIs to add to the playlist.
