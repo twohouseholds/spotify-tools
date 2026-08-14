@@ -12,6 +12,8 @@ from spotipy import Spotify
 
 from scripts.helpers import create_playlist, get_spotify_client, get_tracks
 
+PERMISSIONS = "playlist-read-private playlist-read-collaborative playlist-modify-public"
+
 _logger = logging.getLogger(__name__)
 
 
@@ -30,7 +32,7 @@ def main() -> None:
     """Run the script."""
     logging.basicConfig(level=logging.INFO, format="%(message)s")
     args = parse_args()
-    spotify_client = get_spotify_client()
+    spotify_client = get_spotify_client(PERMISSIONS)
     config = get_config(args)
     intersection_track_uris = get_intersection_track_uris(
         config.playlist_urls,
