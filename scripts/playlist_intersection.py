@@ -26,13 +26,13 @@ from pydantic import BaseModel
 from spotipy import Spotify, SpotifyOAuth
 
 REDIRECT_URI = "http://127.0.0.1:8888/callback"
-SCOPE = "playlist-read-private playlist-read-collaborative playlist-modify-public"
+PERMISSIONS = "playlist-read-private playlist-read-collaborative playlist-modify-public"
 
 _logger = logging.getLogger(__name__)
 
 
-class Config(BaseModel):
-    """Configuration for the script."""
+class PlaylistIntersectionConfig(BaseModel):
+    """Configuration for the playlist intersection script."""
 
     output_playlist_name: str
     """Name of the playlist to create."""
@@ -79,7 +79,7 @@ def get_spotify_client() -> Spotify:
             client_id=client_id,
             client_secret=client_secret,
             redirect_uri=REDIRECT_URI,
-            scope=SCOPE,
+            scope=PERMISSIONS,
         ),
     )
 
@@ -100,16 +100,18 @@ def parse_args() -> Namespace:
     return parser.parse_args()
 
 
-def get_config(args: Namespace) -> Config:
+def get_config(args: Namespace) -> PlaylistIntersectionConfig:
     """Load configuration from a YAML file or prompt interactively.
 
     :param args: Parsed command-line arguments.
     :returns: Validated script configuration.
     :raises ValueError: If the config file contents do not match
-        :class:`Config`.
+        :class:`PlaylistIntersectionConfig`.
     """
     if args.config_path:
-        return Config.model_validate(yaml.safe_load(args.config_path.read_text()))
+        return PlaylistIntersectionConfig.model_validate(
+            yaml.safe_load(args.config_path.read_text()),
+        )
     print(  # noqa: T201
         "Paste the URLs to the playlists you want the intersection of",
         "(paste + ENTER to add, ENTER to continue):",
@@ -120,7 +122,7 @@ def get_config(args: Namespace) -> Config:
             playlist_urls.append(url)
         else:
             break
-    return Config(
+    return PlaylistIntersectionConfig(
         output_playlist_name=input("Name the output playlist: "),
         playlist_urls=playlist_urls,
         setminus_playlist_url=None,
