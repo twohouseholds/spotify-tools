@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create an intersection playlist with the common tracks from given playlist URLs."""
+"""Create an intersection playlist with the common tracks of the provided playlists."""
 
 import argparse
 import logging

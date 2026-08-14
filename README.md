@@ -15,12 +15,13 @@ Tools for Spotify features that are currently not supported.
 
 ## Tool: Playlist Intersection
 
-Create an intersection playlist with the common tracks from given playlist URLs.
+Create an intersection playlist with the common tracks of the provided playlists.
+
 ```bash
 uv run --env-file .env -m scripts.playlist_intersection
 ```
 
-By default, the tool asks for the input configuration details (playlist URLs etc.) via terminal.
+By default, the tool asks for the input configuration details (playlist URLs etc.) via stdin.
 
 The tool can also be configured via a YAML file, though.
 This enables additional features like `setminus_playlist_url`.
