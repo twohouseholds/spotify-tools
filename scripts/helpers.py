@@ -154,7 +154,7 @@ def create_playlist(
     :param name: Name of the playlist to create.
     :param track_uris: Track URIs to add to the playlist.
     :param spotify_client: Authenticated Spotify client.
-    :returns: None.
+    :param logger: Logger instance for logging output.
     """
     logger.info("Creating playlist '%s'", name)
     response_dict = cast(
