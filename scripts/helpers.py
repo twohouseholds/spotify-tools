@@ -9,7 +9,6 @@ from typing import Any, cast, override
 
 from spotipy import Spotify, SpotifyOAuth
 
-PERMISSIONS = "playlist-read-private playlist-read-collaborative playlist-modify-public"
 REDIRECT_URI = "http://127.0.0.1:8888/callback"
 
 
@@ -29,11 +28,12 @@ def extract_playlist_id(playlist_url: str) -> str:
     return match.group(1)
 
 
-def get_spotify_client() -> Spotify:
+def get_spotify_client(permissions: Any) -> Spotify:  # noqa: ANN401
     """Create an authenticated Spotify client.
 
     The client is configured using environment variables.
 
+    :param permissions: Scope permissions for the Spotify client.
     :returns: An authenticated Spotify client.
     :raises ValueError: If either required environment variable is missing.
     """
@@ -48,7 +48,7 @@ def get_spotify_client() -> Spotify:
             client_id=client_id,
             client_secret=client_secret,
             redirect_uri=REDIRECT_URI,
-            scope=PERMISSIONS,
+            scope=permissions,
         ),
     )
 
