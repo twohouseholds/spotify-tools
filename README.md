@@ -27,6 +27,16 @@ The tool can also be configured via a YAML file, though.
 This enables additional features like `setminus_playlist_url`.
 To do so, provide the path to a config YAML file at the end of the command.
 
+## Tool: Playlist Artist Count
+
+Output the count of songs per artist in the provided playlist (descending order).
+
+```bash
+uv run --env-file .env -m scripts.playlist_artist_counts
+```
+
+The tool asks for the input playlist URL via stdin.
+
 ## Troubleshooting
 
 - When running a tool's script for the first time, a browser popup will ask for the necessary Spotify permissions for that tool. This is expected.
